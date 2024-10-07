@@ -11,21 +11,31 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
+from os import getenv, path
+import dotenv
+from django.core.management.utils import get_random_secret_key
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+dotenv_file = BASE_DIR / '.env.local'
+
+if path.isfile(dotenv_file):
+    dotenv.load_dotenv(dotenv_file)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-hak2cjk0ab&z48w#(p7l$(_+4(kg2*@h$8_(-ob@0i7+e$dm1_'
+
+# SECRET_KEY = ''
+SECRET_KEY = getenv('DJANGO_SECRET_KEY', get_random_secret_key())
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = getenv('DJANGO_ALLOWED_HOSTS', "127.0.0.1,localhost").split(",")
 
 
 # Application definition
@@ -37,11 +47,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_neomodel',
+    'rest_framework',
+    'djoser',
+    'users',
+    'corsheaders',
+    'social_django'
+    # 'rest_framework_simplejwt.token_blacklist',
+
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -76,10 +95,29 @@ WSGI_APPLICATION = 'backend_2.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+         'ENGINE': 'django.db.backends.postgresql',
+         'NAME':'travel_management_db',
+         'USER':'postgres',
+         'PASSWORD':'WbHl3TLiSrjRvMRLR62e',
+         'HOST':'travel-management.cp6g0qouchfk.eu-north-1.rds.amazonaws.com',
+         'PORT':'5432'
+     }
 }
+
+#
+EMAIL_BACKEND = 'django_ses.SESBackend'
+DEFAULT_FROM_EMAIL = getenv('AWS_SES_FROM_EMAIL')
+AWS_SES_ACCESS_KEY_ID = getenv('AWS_SES_ACCESS_KEY_ID')
+AWS_SES_SECRET_ACCESS_KEY = getenv('AWS_SES_SECRET_ACCESS_KEY')
+AWS_SES_REGION_NAME = getenv('AWS_SES_REGION_NAME')
+AWS_SES_REGION_ENDPOINT = f'email.{AWS_SES_REGION_NAME}.amazonaws.com'
+AWS_SES_FROM_EMAIL = getenv('AWS_SES_FROM_EMAIL')
+USE_SES_V2 = True
+
+
+DOMAIN = getenv('DOMAIN')
+SITE_NAME = "travel-management"
+
 
 
 # Password validation
@@ -117,8 +155,125 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'static'
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media/'
 
+
+AUTHENTICATION_BACKENDS = [
+    'social_core.backends.google.GoogleOAuth2',
+    'social_core.backends.facebook.FacebookOAuth2',
+    'django.contrib.auth.backends.ModelBackend',
+
+]
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CORS_ALLOWED_ORIGINS = getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
+CORS_ALLOW_CREDENTIALS = True
+
+
+CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_HTTPONLY = True
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000"
+]
+
+CORS_EXPOSE_HEADERS = ["Conter-Type", "X-CSRFToken"]
+
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SAMESITE ="Lax"
+
+
+AUTH_COOKIE = 'access'
+AUTH_COOKIE_MAX_AGE = timedelta(minutes=5)
+AUTH_COOKIE_ACCESS_MAX_AGE = timedelta(minutes=5)
+AUTH_COOKIE_REFRESH_MAX_AGE = timedelta(days=1)
+AUTH_COOKIE_SECURE = getenv('AUTH_COOKIE_SECURE', 'True') == 'True'
+AUTH_COOKIE_HTTP_ONLY = True
+AUTH_COOKIE_PATH = '/'
+AUTH_COOKIE_SAMESITE = 'None'
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = getenv('GOOGLE_AUTH_KEY')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = getenv('GOOGLE_AUTH_SECRET_KEY')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ['https://www.googleapis.com/auth/userinfo.email',
+                                   'https://www.googleapis.com/auth/userinfo.profile',
+                                   'openid']
+SOCIAL_AUTH_GOOGLE_OAUTH2_EXTRA_DATA = ['first_name', 'last_name']
+
+SOCIAL_AUTH_FACEBOOK_KEY = getenv('FACEBOOK_AUTH_KEY')
+SOCIAL_AUTH_FACEBOOK_SECRET = getenv('FACEBOOK_AUTH_SECRET_KEY')
+SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
+SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {'fields': 'email, first_name, last_name'}
+
+# SIMPLE_JWT = {
+#     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+#     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+#     "ROTATE_REFRESH_TOKENS": False,
+#     "BLACKLIST_AFTER_ROTATION": False,
+#     "UPDATE_LAST_LOGIN": False,
+#
+#     "ALGORITHM": "HS256",
+#     "SIGNING_KEY": SECRET_KEY,
+#     "VERIFYING_KEY": "",
+#     "AUDIENCE": None,
+#     "ISSUER": None,
+#     "JSON_ENCODER": None,
+#     "JWK_URL": None,
+#     "LEEWAY": 0,
+#
+#     "AUTH_HEADER_TYPES": ("Bearer",),
+#     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
+#     "USER_ID_FIELD": "id",
+#     "USER_ID_CLAIM": "user_id",
+#     "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
+#
+#     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+#     "TOKEN_TYPE_CLAIM": "token_type",
+#     "TOKEN_USER_CLASS": "rest_framework_simplejwt.models.TokenUser",
+#
+#     "JTI_CLAIM": "jti",
+#
+#     "SLIDING_TOKEN_REFRESH_EXP_CLAIM": "refresh_exp",
+#     "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
+#     "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
+#
+#     "AUTH_COOKIE": "access",
+#     "AUTH_COOKIE_REFRESH": 'refresh',
+#     "AUTH_COOKIE_DOMAIN": None,
+#     "AUTH_COOKIE_SECURE": False,
+#     "AUTH_COOKIE_HTTP_ONLY": True,
+#     "AUTH_COOKIE_PATH": "/",
+#     "AUTH_COOKIE_SAMESITE": "None",
+#
+#     "TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainPairSerializer",
+#     "TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSerializer",
+#     "TOKEN_VERIFY_SERIALIZER": "rest_framework_simplejwt.serializers.TokenVerifySerializer",
+#     "TOKEN_BLACKLIST_SERIALIZER": "rest_framework_simplejwt.serializers.TokenBlacklistSerializer",
+#     "SLIDING_TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainSlidingSerializer",
+#     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
+# }
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': ['users.authentication.CustomJWTAuthentication'],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated'
+    ]
+}
+
+DJOSER = {
+    'PASSWORD_RESET_CONFIRM_URL': 'password-reset/{uid}/{token}',
+    'ACTIVATION_URL': 'activation/{uid}/{token}',
+    'SEND_ACTIVATION_EMAIL': True,
+    'USER_CREATE_PASSWORD_RETYPE': True,
+    'PASSWORD_RESET_CONFIRM_RETYPE' : True,
+    'TOKEN_MODEL': None,
+    'SOCIAL_AUTH_ALLOWED_REDIRECT_URIS': getenv('REDIRECT_URLS').split(',')
+
+
+}
+
+AUTH_USER_MODEL = 'users.UserAccount'
