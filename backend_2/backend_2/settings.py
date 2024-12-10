@@ -98,8 +98,8 @@ DATABASES = {
          'ENGINE': 'django.db.backends.postgresql',
          'NAME':'travel_management_db',
          'USER':'postgres',
-         'PASSWORD':'WbHl3TLiSrjRvMRLR62e',
-         'HOST':'travel-management.cp6g0qouchfk.eu-north-1.rds.amazonaws.com',
+         'PASSWORD':'*^z{f:C3>9`.XU>*',
+         'HOST':'34.116.206.227',
          'PORT':'5432'
      }
 }
@@ -171,7 +171,11 @@ AUTHENTICATION_BACKENDS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOWED_ORIGINS = getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:3000').split(',')
+#CORS_ALLOWED_ORIGINS = getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000').split(',')
+
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:3000",
+]
 CORS_ALLOW_CREDENTIALS = True
 
 
@@ -192,10 +196,11 @@ AUTH_COOKIE = 'access'
 AUTH_COOKIE_MAX_AGE = timedelta(minutes=5)
 AUTH_COOKIE_ACCESS_MAX_AGE = timedelta(minutes=5)
 AUTH_COOKIE_REFRESH_MAX_AGE = timedelta(days=1)
-AUTH_COOKIE_SECURE = getenv('AUTH_COOKIE_SECURE', 'True') == 'True'
+#AUTH_COOKIE_SECURE = getenv('AUTH_COOKIE_SECURE', 'True') == 'True'
+AUTH_COOKIE_SECURE = True
 AUTH_COOKIE_HTTP_ONLY = True
 AUTH_COOKIE_PATH = '/'
-AUTH_COOKIE_SAMESITE = 'None'
+AUTH_COOKIE_SAMESITE = 'strict'
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = getenv('GOOGLE_AUTH_KEY')
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = getenv('GOOGLE_AUTH_SECRET_KEY')

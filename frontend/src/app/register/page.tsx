@@ -1,8 +1,15 @@
 
 import RegisterForm from '@/components/LoginRegister/RegisterForm'
 import LeftSideImage from "@/components/LoginRegister/LeftSideImage";
+import {toast} from "react-toastify";
+import {Metadata} from "next";
 
-export default function LoginPage() {
+export const metadata: Metadata = {
+    title: 'Register',
+    description: 'Register page'
+};
+
+export default function Page() {
     return (
         <div className="min-h-screen flex flex-col lg:flex-row">
             {/* Left side with image and typewriter effect */}

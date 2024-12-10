@@ -2,7 +2,7 @@
 import LoginForm from '@/components/LoginRegister/LoginForm'
 import LeftSideImage from "@/components/LoginRegister/LeftSideImage";
 
-export default function LoginPage() {
+export default function Page() {
     return (
         <div className="min-h-screen flex flex-col lg:flex-row">
             {/* Left side  */}

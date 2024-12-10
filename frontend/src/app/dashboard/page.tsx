@@ -6,11 +6,15 @@ import NavbarApp from "@/components/Dashboard/NavbarApp";
 import Map from "@/components/Dashboard/Map";
 import UtilityPanel from "@/components/Dashboard/UtilityPanel";
 import Chat from "@/components/Dashboard/Chat";
+import AuthGuard from "@/components/AuthGuard";
 
 export default function MapLayout() {
     const [isPopupOpen, setIsPopupOpen] = useState(false)
 
     return (
+        <AuthGuard>
+
+
         <div className="flex flex-col h-screen">
             {/* Navbar */}
 
@@ -40,5 +44,6 @@ export default function MapLayout() {
 
             </div>
         </div>
+        </AuthGuard>
     )
 }

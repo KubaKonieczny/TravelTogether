@@ -1,89 +1,84 @@
 'use client'
 
-import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import LoginRegisterButton from "@/components/LoginRegister/LoginRegisterButton";
-import FormEntry from "@/components/LoginRegister/FormEntry";
+import React, { useState, ChangeEvent, FormEvent } from 'react'
+
 import SocialButton from "@/components/LoginRegister/SocialButton";
+import {useRegister} from "@/hooks";
+import Form from "@/components/LoginRegister/Form";
+import Link from "next/link";
+
 
 export default function RegisterForm() {
-    const [username, setUsername] = useState('')
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [repeatPassword, setRepeatPassword] = useState('')
-    const [error, setError] = useState<string | null>(null)
-    const router = useRouter()
-
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        setError(null)
-
-        try {
-            // Here you would typically make an API call to your authentication endpoint
-            console.log('Logging in with:', email, password)
-            await new Promise(resolve => setTimeout(resolve, 1000))
-            router.push('/dashboard')
-        } catch (err) {
-            setError('Invalid email or password')
-        }
-    }
+    const {first_name,
+        last_name,
+        email,
+        password,
+        re_password,
+        isLoading,
+        onChange,
+        onSubmit} = useRegister();
 
     const handleSocialRegister = (provider: 'Facebook' | 'Google') => {
         // Implement social login logic here
         console.log(`Logging in with ${provider}`)
     }
 
+    const config = [
+        {
+            labelText: 'First name',
+            labelId: 'first_name',
+            autoComplete: 'given-name',
+            type: 'text',
+            value: first_name,
+            required: true,
+        },
+        {
+            labelText: 'Last name',
+            labelId: 'last_name',
+            autoComplete: 'family-name',
+            type: 'text',
+            value: last_name,
+            required: true,
+        },
+        {
+            labelText: 'Email',
+            labelId: 'email',
+            autoComplete: 'email',
+            type: 'email',
+            value: email,
+            required: true,
+        },
+        {
+            labelText: 'Password',
+            labelId: 'password',
+            autoComplete: 'current-password',
+            type: 'password',
+            value: password,
+            required: true,
+        },
+        {
+            labelText: 'Confirm password',
+            labelId: 're_password',
+            autoComplete: 'current-password',
+            type: 'password',
+            value: re_password,
+            required: true,
+        }
+    ];
+
     return (
         <div className="w-full max-w-md space-y-8 rounded-lg p-4 shadow-xl">
             <div>
                 <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
                     Sign up to your account
+
                 </h2>
             </div>
-        <div className="space-y-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <FormEntry
-                    label={"Email"}
-                    name={"email"}
-                    type={"email"}
-                    autoComplete={"email"}
-                    onChange={(e) => setEmail(e.target.value)}
-                    value={email}
-                />
-                <FormEntry
-                    label={"Username"}
-                    name={"username"}
-                    type={"username"}
-                    autoComplete={"username"}
-                    onChange={(e) => setUsername(e.target.value)}
-                    value={username}
-                />
-
-                <FormEntry
-                    label={"Password"}
-                    name={"password"}
-                    type={"password"}
-                    autoComplete={"current-password"}
-                    onChange={(e) => setPassword(e.target.value)}
-                    value={password}
-                />
-                <FormEntry
-                    label={"Repeat Password"}
-                    type={"password"}
-                    name={"confirm_password"}
-                    autoComplete={"current-password"}
-                    onChange={(e) => setRepeatPassword(e.target.value)}
-                    value={repeatPassword}
-                />
-
-                {error && (
-                    <div className="text-red-500 text-sm">{error}</div>
-                )}
-
-                <div>
-                    <LoginRegisterButton label={"Sign up"}/>
-                </div>
-            </form>
+            <Form config={config}
+                  isLoading={isLoading}
+                  buttonText="Sign up"
+                  onChange={onChange}
+                  onSubmit={onSubmit}/>
 
             <div className="mt-6">
                 <div className="relative">
@@ -96,11 +91,20 @@ export default function RegisterForm() {
                 </div>
 
                 <div className="mt-6 grid grid-cols-2 gap-3">
-                    <SocialButton provider="Facebook" onClick={() => handleSocialRegister('Facebook')} />
-                    <SocialButton provider="Google" onClick={() => handleSocialRegister('Google')} />
+                    <SocialButton provider="Facebook" onClick={() => handleSocialRegister('Facebook')}/>
+                    <SocialButton provider="Google" onClick={() => handleSocialRegister('Google')}/>
                 </div>
             </div>
+            <p className='mt-10 text-center text-sm text-gray-500'>
+                Already have an account?{' '}
+                <Link
+                    href='/login'
+                    className='font-semibold leading-6 text-indigo-600 hover:text-indigo-500'
+                >
+                    Login here
+                </Link>
+            </p>
         </div>
-        </div>
+
     )
 }
