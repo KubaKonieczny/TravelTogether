@@ -16,18 +16,19 @@ const TravelBlogCard: React.FC<TravelBlogCardProps> = ({ imageFirst, imageUrl, t
                 <Image
                     className="w-full h-auto object-cover rounded-lg shadow-lg"
                     src={imageUrl}
-                    alt="Travel destination"
+                    alt={imageUrl}
                     width={500}
                     height={300}
+                    priority={true}
                 />
             </div>
 
             {/* Text Section */}
             <div className="flex flex-col justify-center items-start p-4 md:p-8 w-full md:w-1/2 bg-gray-50">
-                <h3 className="text-purple-600 font-bold uppercase tracking-wide text-lg md:text-xl">
-                    Wander the World
-                </h3>
-                <h2 className="mt-2 text-2xl md:text-3xl font-bold text-gray-900">
+                {/*<h3 className="text-purple-600 font-bold uppercase tracking-wide text-lg md:text-xl">*/}
+                {/*    Wander the World*/}
+                {/*</h3>*/}
+                <h2 className="mt-2 text-2xl md:text-3xl font-bold text-purple-600">
                     {title}
                 </h2>
                 <p className="mt-4 text-base md:text-lg text-gray-600">

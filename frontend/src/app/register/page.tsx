@@ -1,6 +1,6 @@
 
-import RegisterForm from '@/components/LoginRegister/RegisterForm'
-import LeftSideImage from "@/components/LoginRegister/LeftSideImage";
+import RegisterForm from '@/components/Forms/RegisterForm'
+import LeftSideImage from "@/components/Forms/LeftSideImage";
 import {toast} from "react-toastify";
 import {Metadata} from "next";
 

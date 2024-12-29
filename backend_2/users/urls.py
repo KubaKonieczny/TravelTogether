@@ -1,15 +1,12 @@
-from django.urls import path,re_path
-from .views import CustomTokenVerifyView, CustomTokenRefreshView, CustomTokenObtainPairView, LogoutView, CustomProviderAuthView
+from dj_rest_auth.views import UserDetailsView
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import UserFriendsViewSet
 
+router = DefaultRouter()
+router.register('', UserFriendsViewSet, basename='user')
 
 urlpatterns = [
-    re_path(
-        r'^o/(?P<provider>\S+)/$',
-        CustomProviderAuthView.as_view(),
-        name='provider-auth'
-    ),
-    path('jwt/create/', CustomTokenObtainPairView.as_view()),
-    path('jwt/refresh/', CustomTokenRefreshView.as_view()),
-    path('jwt/verify/', CustomTokenVerifyView.as_view()),
-    path('logout/', LogoutView.as_view())
+    path("me/", UserDetailsView.as_view(), name="rest_user_details"),
+    path('', include(router.urls))
 ]

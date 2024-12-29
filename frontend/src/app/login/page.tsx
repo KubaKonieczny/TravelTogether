@@ -1,8 +1,12 @@
 
-import LoginForm from '@/components/LoginRegister/LoginForm'
-import LeftSideImage from "@/components/LoginRegister/LeftSideImage";
+import LoginForm from '@/components/Forms/LoginForm'
+import LeftSideImage from "@/components/Forms/LeftSideImage";
+import {useSession} from "next-auth/react";
 
 export default function Page() {
+
+    // const { data: session } = useSession();
+    // console.log("session", session)
     return (
         <div className="min-h-screen flex flex-col lg:flex-row">
             {/* Left side  */}
@@ -13,5 +17,6 @@ export default function Page() {
                 <LoginForm />
             </div>
         </div>
+
     )
 }

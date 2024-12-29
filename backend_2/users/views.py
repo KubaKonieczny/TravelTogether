@@ -1,107 +1,254 @@
-from django.shortcuts import render
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
-from rest_framework.views import APIView
+import os
+import uuid
+import logging
+
+
+from dj_rest_auth.registration.views import RegisterView
+from dj_rest_auth.views import UserDetailsView
+from google.cloud import storage
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework import status
-from django.conf import settings
-from djoser.social.views import ProviderAuthView
+from rest_framework.permissions import IsAuthenticated
+from django.db.models import Q
+import random
+
+from backend_2 import settings
+from groups import serializer
+from .models import Users, Friend_Invitations, User_Blocks
+from .serializers import FriendInvitationSerializer, UserBlockSerializer, CustomUserDetailsSerializer, CustomRegisterSerializer
+class CustomRegisterView(RegisterView):
+    serializer_class = CustomRegisterSerializer
+
+class CustomUserDetailsView(UserDetailsView):
+    serializer_class = CustomUserDetailsSerializer
 
 
+class UserFriendsViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
 
-# Create your views here.
-class CustomProviderAuthView(ProviderAuthView):
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
+    @action(detail=False, methods=['get'])
+    def friends(self, request):
+        """Returns list of user's friends"""
+        friend_invitations = Friend_Invitations.objects.filter(
+            (Q(sender=request.user) | Q(receiver=request.user)) &
+            Q(status='accepted')
+        )
 
-        if response.status_code == 201:
-            access_token = response.data.get('access')
-            refresh_token = response.data.get('refresh')
+        friends = []
+        for invitation in friend_invitations:
+            friend = invitation.receiver if invitation.sender == request.user else invitation.sender
+            friends.append(friend)
 
-            response.set_cookie(
-                'access',
-                access_token,
-                max_age=settings.AUTH_COOKIE_MAX_AGE,
-                path=settings.AUTH_COOKIE_PATH,
-                secure=settings.AUTH_COOKIE_SECURE,
-                httponly=settings.AUTH_COOKIE_HTTP_ONLY,
-                samesite=settings.AUTH_COOKIE_SAMESITE
+        serializer = CustomUserDetailsSerializer(friends, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def recommended_users(self, request):
+        """Returns list of recommended users (random users who are not friends)"""
+        # Exclude current user, friends, and blocked users
+        friends_ids = [inv.receiver.id if inv.sender == request.user else inv.sender.id
+                       for inv in Friend_Invitations.objects.filter(
+                Q(sender=request.user) | Q(receiver=request.user))]
+
+        blocked_ids = User_Blocks.objects.filter(blocker=request.user).values_list('blocked_id', flat=True)
+
+        available_users = Users.objects.exclude(
+            Q(id=request.user.id) |
+            Q(id__in=friends_ids) |
+            Q(id__in=blocked_ids)
+        )
+
+        recommended = random.sample(list(available_users), min(5, len(available_users)))
+        serializer = CustomUserDetailsSerializer(recommended, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def friends_requests(self, request):
+        """Returns list of sent friend requests"""
+        requests = Friend_Invitations.objects.filter(
+            sender=request.user,
+            status='pending'
+        )
+        serializer = FriendInvitationSerializer(requests, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def friends_invitations(self, request):
+        """Returns list of received friend invitations"""
+        invitations = Friend_Invitations.objects.filter(
+            receiver=request.user,
+            status='pending'
+        )
+        serializer = FriendInvitationSerializer(invitations, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def blocked(self, request):
+        """Returns list of blocked users"""
+        blocks = User_Blocks.objects.filter(blocker=request.user)
+        serializer = UserBlockSerializer(blocks, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['post'])
+    def friends_requests_create(self, request):
+        """Send friend request"""
+        try:
+            receiver = Users.objects.get(id=request.data.get('user_id'))
+
+            # Check if already friends or request exists
+            if Friend_Invitations.objects.filter(
+                    (Q(sender=request.user, receiver=receiver) |
+                     Q(sender=receiver, receiver=request.user)),
+                    status__in=['accepted', 'pending', "denied"]
+            ).exists():
+                return Response(
+                    {"error": "Friend request already exists or users are already friends"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Check if user is blocked
+            if User_Blocks.objects.filter(
+                    (Q(blocker=request.user, blocked=receiver) |
+                     Q(blocker=receiver, blocked=request.user))
+            ).exists():
+                return Response(
+                    {"error": "Cannot send friend request to blocked user"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            invitation = Friend_Invitations.objects.create(
+                sender=request.user,
+                receiver=receiver
             )
-            response.set_cookie(
-                'refresh',
-                refresh_token,
-                max_age=settings.AUTH_COOKIE_MAX_AGE,
-                path=settings.AUTH_COOKIE_PATH,
-                secure=settings.AUTH_COOKIE_SECURE,
-                httponly=settings.AUTH_COOKIE_HTTP_ONLY,
-                samesite=settings.AUTH_COOKIE_SAMESITE
+            serializer = FriendInvitationSerializer(invitation)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Users.DoesNotExist:
+            return Response(
+                {"error": "User not found"},
+                status=status.HTTP_404_NOT_FOUND
             )
 
-        return response
+    @action(detail=False, methods=['put'], url_path='friend-invitation/(?P<invitation_id>[^/.]+)')
+    def friend_invitation_update(self, request, invitation_id=None):
+        """Update friend invitation status"""
+        try:
+            invitation = Friend_Invitations.objects.get(
+                id=invitation_id,
+                receiver=request.user,
+                status='pending'
+            )
 
-class CustomTokenObtainPairView(TokenObtainPairView):
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
+            new_status = request.data.get('status')
+            if new_status not in ['accepted', 'denied']:
+                return Response(
+                    {"error": "Invalid status"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
-        if response.status_code == 200:
-            access_token = response.data.get('access')
-            refresh_token = response.data.get('refresh')
+            invitation.status = new_status
+            invitation.save()
 
-            response.set_cookie('access',
-                                access_token,
-                                max_age=settings.AUTH_COOKIE_ACCESS_MAX_AGE,
-                                path=settings.AUTH_COOKIE_PATH,
-                                secure=settings.AUTH_COOKIE_SECURE,
-                                httponly=settings.AUTH_COOKIE_HTTP_ONLY,
-                                samesite=settings.AUTH_COOKIE_SAMESITE)
-            response.set_cookie('refresh',
-                                refresh_token,
-                                max_age=settings.AUTH_COOKIE_REFRESH_MAX_AGE,
-                                path=settings.AUTH_COOKIE_PATH,
-                                secure=settings.AUTH_COOKIE_SECURE,
-                                httponly=settings.AUTH_COOKIE_HTTP_ONLY,
-                                samesite=settings.AUTH_COOKIE_SAMESITE
-                                )
+            serializer = FriendInvitationSerializer(invitation)
+            return Response(serializer.data)
+        except Friend_Invitations.DoesNotExist:
+            return Response(
+                {"error": "Invitation not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
-        return response
+    @action(detail=False, methods=['put'])
+    def blocked_update(self, request):
+        """Block or unblock user"""
+        try:
+            user_to_block = Users.objects.get(id=request.data.get('user_id'))
+            action = request.data.get('action')
+
+            if action == 'block':
+                # Create block if it doesn't exist
+                block, created = User_Blocks.objects.get_or_create(
+                    blocker=request.user,
+                    blocked=user_to_block
+                )
+                # Remove any existing friend connections
+                Friend_Invitations.objects.filter(
+                    (Q(sender=request.user, receiver=user_to_block) |
+                     Q(sender=user_to_block, receiver=request.user))
+                ).delete()
+
+                serializer = UserBlockSerializer(block)
+                return Response(serializer.data)
+
+            elif action == 'unblock':
+                block = User_Blocks.objects.filter(
+                    blocker=request.user,
+                    blocked=user_to_block
+                ).delete()
+                return Response({"message": "User unblocked successfully"})
+
+            else:
+                return Response(
+                    {"error": "Invalid action"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        except Users.DoesNotExist:
+            return Response(
+                {"error": "User not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+    @action(detail=False, methods=['patch'])
+    def update_profile(self, request):
 
 
-class CustomTokenRefreshView(TokenRefreshView):
-    def post(self, request, *args, **kwargs):
-        refresh_token = request.COOKIES.get('refresh')
+        if 'profile_picture' in request.FILES:
+            profile_picture = request.FILES['profile_picture']
 
-        if refresh_token:
-            request.data['refresh'] = refresh_token
+            # Upload to Google Cloud Storage
+            try:
+                # Initialize Google Cloud Storage client
+                storage_client = storage.Client()
+                bucket = storage_client.bucket(settings.GCS_BUCKET_NAME)
+                print(profile_picture.name)
+                # Create a unique filename
+                file_extension = profile_picture.name.split('.')[-1]
+                unique_filename = f"profile_pictures/{uuid.uuid4()}.{file_extension}"
 
-        response = super().post(request, *args, **kwargs)
+                # Create a new blob and upload the file
+                blob = bucket.blob(unique_filename)
+                blob.upload_from_file(
+                    profile_picture,
+                    content_type=profile_picture.content_type
+                )
 
-        if response.status_code == 200:
-            access_token = response.data.get('access')
+                # Generate the public URL
+                public_url = f"https://storage.googleapis.com/{settings.GCS_BUCKET_NAME}/{unique_filename}"
 
-            response.set_cookie('access',
-                                access_token,
-                                max_age=settings.AUTH_COOKIE_ACCESS_MAX_AGE,
-                                path=settings.AUTH_COOKIE_PATH,
-                                secure=settings.AUTH_COOKIE_SECURE,
-                                httponly=settings.AUTH_COOKIE_HTTP_ONLY,
-                                samesite=settings.AUTH_COOKIE_SAMESITE)
+                # Update request data with the file URL instead of the file
+                request.data['profile_picture'] = public_url
 
-        return response
+                print(request.data)
+            except Exception as e:
+                return Response(
+                    {"error": "Failed to upload profile picture"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
 
+            # Process the user update
+        user_serializer = CustomUserDetailsSerializer(
+            request.user,
+            data=request.data,
+            partial=True
+        )
 
-class CustomTokenVerifyView(TokenVerifyView):
-    def post(self, request, *args, **kwargs):
-        access_token = request.COOKIES.get('access')
+        if not user_serializer.is_valid():
+            return Response(
+                user_serializer.errors,
 
-        if access_token:
-            request.data['token'] = access_token
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        return super().post(request, *args, **kwargs)
+        user = user_serializer.save()
 
-
-class LogoutView(APIView):
-    def post(self, request, *args, **kwargs):
-        response = Response(status=status.HTTP_204_NO_CONTENT)
-        response.delete_cookie('access')
-        response.delete_cookie('refresh')
-
-        return response
+        return Response(CustomUserDetailsSerializer(user).data)
