@@ -10,24 +10,6 @@ import Google from "@auth/core/providers/google";
 import {cookies} from "next/headers";
 
 
-//
-// async function login(credentials: any) {
-//     try {
-//         return await axios.post(process.env.NEXTAUTH_BACKEND_URL + "auth/login/", credentials).then((res: any) => {
-//             const {user} = res;
-//             console.log(user);
-//             return {
-//                 name: user.name,
-//                 email: user.email,
-//                 // image: user.profile_photo,
-//                 accessToken: res.access,
-//                 // If you need any other information you can add here...
-//             };
-//         });
-//     } catch (e) {
-//         throw new Error("Something went wrong.");
-//     }
-// }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({ ...authConfig,
     providers: [
@@ -73,13 +55,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({ ...authConfig,
                         throw new Error('No data received from login endpoint');
                     }
 
-                    // const cookies_parsed = cookie_parser.parse(cookies)
-
-                    // const response_2 = await axios.get('http://localhost:8000/api/auth/user/', {
-                    //     withCredentials: true,  // Send cookies with the request
-                    // })
-                    //
-                    // const add_info = response_2.data
 
                     if (data) return {
                         first_name: data.user.first_name,
@@ -108,22 +83,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({ ...authConfig,
 
     ],
 
-    //
-    // callbacks: {
-    //     async jwt({user, token}) {
-    //         if (user) {
-    //             token.user = user;
-    //         }
-    //         return token;
-    //     },
-    //     async session({session, token}: any) {
-    //         session.user = token.user;
-    //
-    //         return session;
-    //     },
-    //
-    //
-    // },
 
     callbacks: {
         async session({ session, token }) {
@@ -142,7 +101,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({ ...authConfig,
                 token.user = user
             }
 
-            // Update token if session is updated
             if (trigger === "update" && session) {
                 token.user = {
                     ...token.user,
@@ -153,7 +111,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({ ...authConfig,
             return token
         }
     },
-    // ... rest of your auth configuration
+
 
 
     pages: {

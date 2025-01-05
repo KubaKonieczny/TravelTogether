@@ -1,7 +1,6 @@
 'use client';
 
 import React from "react";
-import Form from "./Form";
 import EditForm from "@/components/Forms/EditForm";
 import {updateProfile} from "@/hooks/updateProfile";
 import {getSession, useSession} from "next-auth/react";
@@ -23,7 +22,7 @@ export default function EditProfileForm({ onClose,  buttonText }: EditProfileFor
         console.log(result)
 
         if (result.success) {
-            // Update client-side session
+
             await update({
                 ...session,
                 user: {
@@ -86,10 +85,6 @@ export default function EditProfileForm({ onClose,  buttonText }: EditProfileFor
                     onClose={onClose}
                     initialValues={session?.user}
                 />
-
-
-
-
             </div>
         </div>
     );

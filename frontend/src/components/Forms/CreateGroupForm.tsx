@@ -1,10 +1,7 @@
 'use client';
 
 import React from "react";
-import Form from "./Form";
-import EditForm from "@/components/Forms/EditForm";
-import {updateProfile} from "@/hooks/updateProfile";
-import {getSession, useSession} from "next-auth/react";
+
 import {createGroup} from "@/hooks/createGroup";
 import CreateForm from "@/components/Forms/CreateForm";
 ;

@@ -1,5 +1,5 @@
 from dj_rest_auth.jwt_auth import get_refresh_view
-from dj_rest_auth.views import LoginView, LogoutView, UserDetailsView, PasswordChangeView
+from dj_rest_auth.views import LoginView, LogoutView, PasswordChangeView
 from django.urls import path
 from rest_framework_simplejwt.views import TokenVerifyView
 from authentication.views import GoogleLogin

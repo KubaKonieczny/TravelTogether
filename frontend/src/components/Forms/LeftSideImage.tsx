@@ -1,5 +1,5 @@
 import Image from "next/image";
-import TypewriterEffect from "@/components/Forms/TypewriterEffect";
+import TypewriterEffect from "@/components/Utils/TypewriterEffect";
 
 
 export default function LeftSideImage() {

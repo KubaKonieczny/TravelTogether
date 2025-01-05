@@ -2,9 +2,10 @@
 import React, {useState} from "react";
 import {SessionProvider} from "next-auth/react";
 import AuthGuard from "@/components/AuthGuard";
-import NavbarApp from "@/components/Common/NavbarApp";
-import Chats from "@/components/Common/Chats";
+import NavbarApp from "@/components/Navbar/NavbarApp";
+import Chats from "@/components/Chats/Chats";
 import {LoadScript} from "@react-google-maps/api";
+
 
 
 
@@ -16,9 +17,10 @@ export default function RootLayout({children}: { children: React.ReactNode }) {
 
     return (
         <SessionProvider>
+
             <NavbarApp onClick={() => setIsPopupOpen(!isPopupOpen)}/>
             <div className="flex flex-col h-screen">
-            {/*    <div className="flex flex-1 overflow-hidden">*/}
+
                 <LoadScript googleMapsApiKey={googleMapsApiKey}>
                 {children}
 
@@ -28,8 +30,6 @@ export default function RootLayout({children}: { children: React.ReactNode }) {
                 </LoadScript>
             </div>
 
-            {/*    </div>*/}
-            {/*</div>*/}
 
         </SessionProvider>
 );

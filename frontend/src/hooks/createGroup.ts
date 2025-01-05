@@ -1,8 +1,6 @@
 "use client"
 import axios from "axios";
 
-import {useRouter} from "next/navigation";
-
 export async function createGroup(prevState: any, formData: FormData) {
 
     try {
@@ -14,7 +12,6 @@ export async function createGroup(prevState: any, formData: FormData) {
                 },
             });
 
-        console.log(response);
 
         return { success: true, message: "Group created successfully", data: response.data };
     } catch (error) {

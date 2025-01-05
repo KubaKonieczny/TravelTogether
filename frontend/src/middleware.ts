@@ -1,5 +1,3 @@
-
-// export { auth as middleware } from "@/auth"
 import NextAuth from 'next-auth';
 import { authConfig } from '@/auth.config';
 import {DEFAULT_REDIRECT, PUBLIC_ROUTES, ROOT} from "@/utils/routes";

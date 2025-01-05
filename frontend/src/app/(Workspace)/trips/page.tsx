@@ -1,10 +1,11 @@
 "use client"
-import Map from "@/components/Common/Map";
-import UtilityPanel from "@/components/Common/UtilityPanel";
+
 import React, {useState} from "react";
-import TripList from "@/components/TripList";
-import MainButton from "@/components/LandingPage/MainButton";
+
+import MainButton from "@/components/Buttons/MainButton";
 import CreateTripForm from "@/components/Forms/CreateTripForm";
+import getGroupsTripsData from "@/hooks/getGroupsTrips";
+import CardsList from "@/components/Cards/CardsList";
 export default function Trips() {
 
     const [showCreateTrip, setShowCreateTrip] = useState(false);
@@ -23,17 +24,19 @@ export default function Trips() {
 
 
                 </div>
-                <TripList/>
+                {/*<TripList/>*/}
+                <CardsList action={getGroupsTripsData('trips/upcoming_solo')} type={'trip'} label={"planned trips"}/>
             </div>
 
             <div className="px-4 py-5 sm:px-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Group Trips</h2>
-                <TripList/>
+                {/*<TripList/>*/}
+                <CardsList action={getGroupsTripsData('trips/upcoming_group')} type={'trip'} label={"group trips"}  />
             </div>
 
             <div className="px-4 py-5 sm:px-6">
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Recommended Trips</h2>
-                <TripList/>
+                <CardsList action={getGroupsTripsData('trips/recommended')} type={'trip'} label={"recommended trips"}  />
             </div>
             {showCreateTrip && (
                 <CreateTripForm onClose={() =>setShowCreateTrip(false)} buttonText={"Create trip"}/>

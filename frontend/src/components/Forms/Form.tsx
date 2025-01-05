@@ -1,6 +1,5 @@
 import React from "react";
-import {FormEntry} from "@/components/Forms/index";
-
+import FormEntry from "@/components/Forms/FormEntry";
 
 
 interface Config {

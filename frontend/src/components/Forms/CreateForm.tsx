@@ -2,8 +2,7 @@
 
 import { useActionState } from 'react'
 import { useState, useEffect } from 'react'
-import MainButton from "@/components/LandingPage/MainButton";
-import {router} from "next/client";
+import MainButton from "@/components/Buttons/MainButton";
 import {useRouter} from "next/navigation";
 
 interface FormField {

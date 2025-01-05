@@ -1,12 +1,11 @@
 'use client'
-import {auth} from '@/auth'
 
 import { z } from 'zod'
 import axios from 'axios'
 
 async function uploadToGoogleCloud(file: File) {
     try {
-        // First, get the signed URL from your backend
+
         const getUrlResponse = await axios.get(
             `${process.env.NEXT_PUBLIC_HOST}storage/upload-url/`,
             {
@@ -17,7 +16,7 @@ async function uploadToGoogleCloud(file: File) {
 
         const { uploadUrl, publicUrl } = getUrlResponse.data;
 
-        // Upload the file directly to Google Cloud Storage
+
         await axios.put(uploadUrl, file, {
             headers: {
                 'Content-Type': file.type,

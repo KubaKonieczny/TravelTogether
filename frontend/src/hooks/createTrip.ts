@@ -1,9 +1,12 @@
 "use client"
 import axios from "axios";
 
-import {useRouter} from "next/navigation";
 
 export async function createTrip(prevState: any, formData: FormData) {
+
+
+    const stepGroups = [{ region: "Default" }];
+    formData.append('step_groups', JSON.stringify(stepGroups));
 
     try {
         const response = await axios.post(process.env.NEXT_PUBLIC_HOST+ 'trips/create_trip/',

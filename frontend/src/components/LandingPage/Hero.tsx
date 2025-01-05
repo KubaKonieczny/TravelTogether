@@ -1,5 +1,3 @@
-
-
 import Image from "next/image";
 import LandingNavbar from "@/components/LandingPage/LandingNavbar";
 import React from "react";
@@ -21,7 +19,7 @@ export default function Hero() {
             <div className="relative z-10 flex items-center justify-center h-full text-center text-white px-4 md:px-8">
                 <div>
                     <h1 className="text-4xl md:text-5xl font-bold mb-4">Explore the World Together</h1>
-                    <p className="text-base md:text-lg mb-8">Meet, plan, and travel—optimize every step of your journey for a seamless trip experience.</p>
+                    <p className="text-base md:text-lg mb-8">Meet, plan, and travel—optimize every step of your journey for a seamless trip experience</p>
                 </div>
             </div>
         </section>

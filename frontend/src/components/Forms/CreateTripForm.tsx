@@ -1,11 +1,7 @@
 'use client';
 
 import React from "react";
-import Form from "./Form";
-import EditForm from "@/components/Forms/EditForm";
-import {updateProfile} from "@/hooks/updateProfile";
-import {getSession, useSession} from "next-auth/react";
-import {createGroup} from "@/hooks/createGroup";
+
 import CreateForm from "@/components/Forms/CreateForm";
 import {createTrip} from "@/hooks/createTrip";
 ;
@@ -17,7 +13,6 @@ interface GroupFormProps {
 
 export default function CreateTripForm({ onClose,  buttonText }: GroupFormProps) {
 
-    const trip_data = null
 
 
     const groupConfig = [

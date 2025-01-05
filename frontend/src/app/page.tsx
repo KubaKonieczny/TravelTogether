@@ -1,9 +1,7 @@
-import Footer from "@/components/Footer";
+import Footer from "@/components/Utils/Footer";
 import Hero from "@/components/LandingPage/Hero";
-
-
 import TravelBlogCard from "@/components/LandingPage/TravelBlogCard";
-import {useSession} from "next-auth/react";
+
 
 
 export default function HomePage() {

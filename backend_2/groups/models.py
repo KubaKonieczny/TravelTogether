@@ -5,7 +5,7 @@ from trips.models import Trips
 from users.models import Users
 
 
-# Group model
+
 class Groups(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
@@ -32,7 +32,7 @@ class Group_Members(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('user', 'group')  # Ensure a user can't be in the same group multiple times
+        unique_together = ('user', 'group')
 
     def __str__(self):
         return f'{self.user.username} - {self.group.name} ({self.role})'

@@ -1,7 +1,6 @@
 'use client';
 
 import React from "react";
-import EdForm from "./Form";
 import {changePassword} from "@/hooks/changePassword";
 import EditForm from "@/components/Forms/EditForm";
 

@@ -1,7 +1,4 @@
-import os
 import uuid
-import logging
-
 
 from dj_rest_auth.registration.views import RegisterView
 from dj_rest_auth.views import UserDetailsView
@@ -14,11 +11,15 @@ from django.db.models import Q
 import random
 
 from backend_2 import settings
-from groups import serializer
+
 from .models import Users, Friend_Invitations, User_Blocks
-from .serializers import FriendInvitationSerializer, UserBlockSerializer, CustomUserDetailsSerializer, CustomRegisterSerializer
+from .serializers import FriendInvitationSerializer, UserBlockSerializer, CustomUserDetailsSerializer, \
+    CustomRegisterSerializer
+
+
 class CustomRegisterView(RegisterView):
     serializer_class = CustomRegisterSerializer
+
 
 class CustomUserDetailsView(UserDetailsView):
     serializer_class = CustomUserDetailsSerializer
@@ -29,7 +30,7 @@ class UserFriendsViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'])
     def friends(self, request):
-        """Returns list of user's friends"""
+
         friend_invitations = Friend_Invitations.objects.filter(
             (Q(sender=request.user) | Q(receiver=request.user)) &
             Q(status='accepted')
@@ -45,8 +46,7 @@ class UserFriendsViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'])
     def recommended_users(self, request):
-        """Returns list of recommended users (random users who are not friends)"""
-        # Exclude current user, friends, and blocked users
+
         friends_ids = [inv.receiver.id if inv.sender == request.user else inv.sender.id
                        for inv in Friend_Invitations.objects.filter(
                 Q(sender=request.user) | Q(receiver=request.user))]
@@ -65,7 +65,7 @@ class UserFriendsViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'])
     def friends_requests(self, request):
-        """Returns list of sent friend requests"""
+
         requests = Friend_Invitations.objects.filter(
             sender=request.user,
             status='pending'
@@ -75,7 +75,7 @@ class UserFriendsViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'])
     def friends_invitations(self, request):
-        """Returns list of received friend invitations"""
+
         invitations = Friend_Invitations.objects.filter(
             receiver=request.user,
             status='pending'
@@ -85,18 +85,17 @@ class UserFriendsViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'])
     def blocked(self, request):
-        """Returns list of blocked users"""
+
         blocks = User_Blocks.objects.filter(blocker=request.user)
         serializer = UserBlockSerializer(blocks, many=True)
         return Response(serializer.data)
 
     @action(detail=False, methods=['post'])
     def friends_requests_create(self, request):
-        """Send friend request"""
+
         try:
             receiver = Users.objects.get(id=request.data.get('user_id'))
 
-            # Check if already friends or request exists
             if Friend_Invitations.objects.filter(
                     (Q(sender=request.user, receiver=receiver) |
                      Q(sender=receiver, receiver=request.user)),
@@ -107,7 +106,6 @@ class UserFriendsViewSet(viewsets.ViewSet):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            # Check if user is blocked
             if User_Blocks.objects.filter(
                     (Q(blocker=request.user, blocked=receiver) |
                      Q(blocker=receiver, blocked=request.user))
@@ -131,7 +129,7 @@ class UserFriendsViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['put'], url_path='friend-invitation/(?P<invitation_id>[^/.]+)')
     def friend_invitation_update(self, request, invitation_id=None):
-        """Update friend invitation status"""
+
         try:
             invitation = Friend_Invitations.objects.get(
                 id=invitation_id,
@@ -159,7 +157,7 @@ class UserFriendsViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['put'])
     def blocked_update(self, request):
-        """Block or unblock user"""
+
         try:
             user_to_block = Users.objects.get(id=request.data.get('user_id'))
             action = request.data.get('action')
@@ -170,7 +168,7 @@ class UserFriendsViewSet(viewsets.ViewSet):
                     blocker=request.user,
                     blocked=user_to_block
                 )
-                # Remove any existing friend connections
+
                 Friend_Invitations.objects.filter(
                     (Q(sender=request.user, receiver=user_to_block) |
                      Q(sender=user_to_block, receiver=request.user))
@@ -201,41 +199,34 @@ class UserFriendsViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['patch'])
     def update_profile(self, request):
 
-
         if 'profile_picture' in request.FILES:
             profile_picture = request.FILES['profile_picture']
 
-            # Upload to Google Cloud Storage
             try:
-                # Initialize Google Cloud Storage client
+
                 storage_client = storage.Client()
                 bucket = storage_client.bucket(settings.GCS_BUCKET_NAME)
-                print(profile_picture.name)
-                # Create a unique filename
+
                 file_extension = profile_picture.name.split('.')[-1]
                 unique_filename = f"profile_pictures/{uuid.uuid4()}.{file_extension}"
 
-                # Create a new blob and upload the file
                 blob = bucket.blob(unique_filename)
                 blob.upload_from_file(
                     profile_picture,
                     content_type=profile_picture.content_type
                 )
 
-                # Generate the public URL
                 public_url = f"https://storage.googleapis.com/{settings.GCS_BUCKET_NAME}/{unique_filename}"
 
-                # Update request data with the file URL instead of the file
                 request.data['profile_picture'] = public_url
 
-                print(request.data)
+
             except Exception as e:
                 return Response(
                     {"error": "Failed to upload profile picture"},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
 
-            # Process the user update
         user_serializer = CustomUserDetailsSerializer(
             request.user,
             data=request.data,

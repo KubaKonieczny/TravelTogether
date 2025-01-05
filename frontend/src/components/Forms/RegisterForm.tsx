@@ -2,7 +2,7 @@
 
 import React from 'react'
 
-import SocialButton from "@/components/Forms/SocialButton";
+import SocialButton from "@/components/Buttons/SocialButton";
 
 import Form from "@/components/Forms/Form";
 import Link from "next/link";

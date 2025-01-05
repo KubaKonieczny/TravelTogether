@@ -3,9 +3,9 @@ from dj_rest_auth.registration.serializers import RegisterSerializer
 from dj_rest_auth.serializers import UserDetailsSerializer
 from django.db import transaction
 
-from users.models import Users
 from dj_rest_auth.serializers import JWTSerializer
 from .models import Users, Friend_Invitations, User_Blocks
+
 
 class CustomRegisterSerializer(RegisterSerializer):
     first_name = serializers.CharField(max_length=50, required=True)
@@ -17,7 +17,6 @@ class CustomRegisterSerializer(RegisterSerializer):
         data_dict['profile_picture'] = self.validated_data.get('profile_picture', '')
         return data_dict
 
-
     @transaction.atomic
     def save(self, request):
         user = super().save(request)
@@ -27,7 +26,6 @@ class CustomRegisterSerializer(RegisterSerializer):
         user.profile_picture = self.validated_data.get('profile_picture', '')
         user.save()
         return user
-
 
 
 class CustomUserDetailsSerializer(UserDetailsSerializer):
@@ -48,6 +46,7 @@ class CustomUserDetailsSerializer(UserDetailsSerializer):
 class CustomJWTSerializer(JWTSerializer):
     user = CustomUserDetailsSerializer()
 
+
 class FriendInvitationSerializer(serializers.ModelSerializer):
     sender = CustomUserDetailsSerializer(read_only=True)
     receiver = CustomUserDetailsSerializer(read_only=True)
@@ -56,11 +55,10 @@ class FriendInvitationSerializer(serializers.ModelSerializer):
         model = Friend_Invitations
         fields = ['id', 'sender', 'receiver', 'status', 'created_at']
 
+
 class UserBlockSerializer(serializers.ModelSerializer):
     blocked = CustomUserDetailsSerializer(read_only=True)
 
     class Meta:
         model = User_Blocks
         fields = ['id', 'blocked', 'created_at']
-
-

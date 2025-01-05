@@ -1,27 +1,14 @@
-// "use client"
+import React from 'react'
 
-import React, {useState} from 'react'
-
-import SocialButton from "@/components/Forms/SocialButton";
+import SocialButton from "@/components/Buttons/SocialButton";
 import Link from "next/link";
 import Form from "@/components/Forms/Form";
 
-import {signIn} from "@/auth";
 import {login, doSocialLogin} from "@/utils/user"
 
 
-
-// async function handleSubmit(formData: FormData) {
-//     const result = await login(formData);
-//
-//     if (result?.error) {
-//         setError(result.error);
-//     }
-// }
-
-
 export default async function LoginForm() {
-    // const [error, setError] = useState<string | null>(null);
+
 
     const config = [
         {
@@ -40,8 +27,6 @@ export default async function LoginForm() {
         }]
 
 
-
-
     return (
         <div className="w-full p-4 max-w-md space-y-8 rounded-lg shadow-xl">
             <div>
@@ -55,11 +40,6 @@ export default async function LoginForm() {
                   action={login}>
             </Form>
 
-            {/*{error && (*/}
-            {/*    <div className="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg">*/}
-            {/*        {error}*/}
-            {/*    </div>*/}
-            {/*)}*/}
 
             <div className="mt-6">
                 <div className="relative">
@@ -78,10 +58,7 @@ export default async function LoginForm() {
                     </form>
                     <form >
                         <SocialButton provider="Facebook"/>
-                    {/*    action={async () => {*/}
-                    {/*    'use server'*/}
-                    {/*    await signIn('facebook')*/}
-                    {/*}}*/}
+
                     </form>
 
 

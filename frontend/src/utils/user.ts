@@ -1,9 +1,6 @@
 "use server"
-import { redirect } from "next/navigation";
-import { CredentialsSignin } from "next-auth";
+
 import {signIn, signOut} from "@/auth";
-import {router} from "next/client";
-import {SignInResponse} from "next-auth/react";
 import axios from "axios";
 
 export const login = async (formData: FormData) => {
@@ -75,8 +72,6 @@ export const register = async (formData: FormData) => {
         })
 
     } catch (error) {
-        // const someError = error as CredentialsSignin;
-        // return someError.cause;
         throw error;
     }
 
@@ -106,8 +101,6 @@ export async function doSocialLogin() {
     }
 
     catch (error) {
-        // const someError = error as CredentialsSignin;
-        // return someError.cause;
         throw error;
     }
 
@@ -116,6 +109,5 @@ export async function doSocialLogin() {
 }
 
 export const handleSocialLogin = async (provider: 'Facebook' | 'Google') => {
-    // Implement social login logic here
-    console.log(`Logging in with ${provider}`)
+
 }

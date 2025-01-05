@@ -1,48 +1,40 @@
 'use client'
 
 import React, { useState } from 'react'
-import Chats from "@/components/Common/Chats";
-import NavbarApp from "@/components/Common/NavbarApp";
-import Map from "@/components/Common/Map";
-import UtilityPanel from "@/components/Common/UtilityPanel";
-import Chat from "@/components/Common/Chat";
-import AuthGuard from "@/components/AuthGuard";
-import { useSession, SessionProvider } from 'next-auth/react';
-import { auth } from "@/auth"
-import ScrollableTripPlanner from "@/components/ScrollableTripPlanner";
+import TripPlanner from "@/components/Utils/TripPlanner";
 import {MapIcon} from "lucide-react";
-import useGroupData from "@/hooks/useGroupData";
 import useTripData from "@/hooks/useTripData";
-import MapWithSearch from "@/components/Common/MapWithSearch";
+import MapWithSearch from "@/components/Map/MapWithSearch";
+import {APIProvider} from "@vis.gl/react-google-maps";
+
+
 export default function Trip({params}) {
-    const [isPopupOpen, setIsPopupOpen] = useState(false)
-    // const session = auth()
+
     const [isMapVisible, setIsMapVisible] = useState(false);
 
     const { trip_id } = React.use(params)
+    const { tripData, error, loading } = useTripData(trip_id);
 
-    console.log(trip_id)
-    const { TripData, error, loading } = useTripData(trip_id);
+    if (loading) return <p>Loading...</p>
+
 
     const toggleMap = () => {
         setIsMapVisible(!isMapVisible);
     };
 
-    // console.log(session?.user?.email)
+
 
     return (
+        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
         <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
             <div className={`w-full lg:w-1/2 transition-all duration-300`}>
-                <ScrollableTripPlanner />
+                <TripPlanner data={tripData} />
             </div>
 
-            {/* Map for larger screens */}
             <div className={` lg:w-1/2  w-0  transition-all duration-300 overflow-hidden`}>
-                {/*<Map />*/}
-                <MapWithSearch />
+                <MapWithSearch itineraryData={tripData}/>
             </div>
 
-            {/* Map toggle button for all screen sizes */}
             {!isMapVisible && (
             <button
                 onClick={toggleMap}
@@ -53,11 +45,11 @@ export default function Trip({params}) {
             </button>
             )}
 
-             {/*Conditional map for mobile */}
+
             {isMapVisible && (
                 <div className="lg:hidden fixed inset-0">
-                    {/*<Map />*/}
-                    <MapWithSearch />
+
+                    <MapWithSearch itineraryData={tripData} />
                     <button
                         onClick={toggleMap}
                         className="absolute top-4 right-4 bg-white text-gray-800 p-2 rounded-full shadow-lg"
@@ -67,38 +59,13 @@ export default function Trip({params}) {
                     </button>
                 </div>
             )}
+
+
         </div>
+        </APIProvider>
+
     )
-    {/* Navbar */
-    }
 
-    // <NavbarApp onClick={() => setIsPopupOpen(!isPopupOpen)} />
-
-    {/* Main content */
-    }
-    // <div className="flex flex-1 overflow-hidden">
-    {/* Left side */
-    }
-
-
-    {/* Pop-up */
-    }
-
-    {/*<Chats*/
-    }
-    {/*    isOpen={isPopupOpen}*/
-    }
-    {/*    onClick={() => setIsPopupOpen(false)}*/
-    }
-
-    {/*/>*/
-    }
-
-
-    {/*    </div>*/
-    }
-    {/*</div>)}*/
-    }
 }
 
 
