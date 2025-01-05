@@ -1,15 +1,14 @@
-import json
 import random
-
 import googlemaps
 from datetime import datetime, timedelta
 import networkx as nx
+from os import getenv
 
 
 class TravelOptimizer:
 
     def __init__(self):
-        self.gmaps = googlemaps.Client(key='AIzaSyAv3elRzdFgKZ4m0Vak5X0ecYSvejjLdTU')
+        self.gmaps = googlemaps.Client(key=getenv('GOOGLE_MAPS_KEY'))
 
         self.data = None
         self.G = None
@@ -87,6 +86,7 @@ class TravelOptimizer:
         distance_matrix = self.gmaps.distance_matrix(origins=steps,
                                                      destinations=steps,
                                                      mode=mode)
+        print(distance_matrix)
         self.G = nx.DiGraph()
 
         origins = distance_matrix['origin_addresses']
@@ -323,5 +323,3 @@ class Ant:
         self.current = None
         self.is_valid = True
         self.visited = []
-
-
